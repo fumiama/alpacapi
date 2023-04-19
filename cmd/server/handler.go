@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"net/http"
 	"net/url"
+	"strconv"
 	"sync/atomic"
 
 	"github.com/RomiChan/syncx"
@@ -25,6 +26,8 @@ func isMethod(m string, w http.ResponseWriter, r *http.Request) bool {
 }
 
 var tokenmap syncx.Map[string, *alpacapi.Token]
+
+var replymap syncx.Map[uint32, *alpacapi.WorkerReply]
 
 var globalid uint32
 
@@ -94,16 +97,68 @@ func reply(w http.ResponseWriter, r *http.Request) {
 		},
 		Message: msg,
 	}
-	rep, err := req.GetReply(workers[rand.Intn(len(workers))], int(buffersize), timeout, teakey, sumtable)
-	if err != nil {
-		logrus.Warnln("[reply] get reply err:", err)
-		http.Error(w, "500 Internal Server Error", http.StatusInternalServerError)
+	if _, ok := replymap.LoadOrStore(req.ID, nil); ok {
+		http.Error(w, "403 Forbidden: worker busy", http.StatusForbidden)
 		return
 	}
-	if rep.IsPending {
-		logrus.Warnln("[reply] worker response err: is pending")
-		http.Error(w, "500 Internal Server Error", http.StatusInternalServerError)
+	go func() {
+		rep, err := req.GetReply(workers[rand.Intn(len(workers))], int(buffersize), timeout, teakey, sumtable)
+		if err != nil {
+			logrus.Warnln("[reply] get reply err:", err)
+			replymap.Delete(req.ID)
+			return
+		}
+		replymap.Store(req.ID, &rep)
+	}()
+	_ = json.NewEncoder(w).Encode(&req)
+}
+
+func get(w http.ResponseWriter, r *http.Request) {
+	if !isMethod("GET", w, r) {
 		return
 	}
-	_ = json.NewEncoder(w).Encode(&rep)
+	token := r.Header.Get("Authorization")
+	if token == "" {
+		http.Error(w, "400 Bad Request: empty token", http.StatusBadRequest)
+		return
+	}
+	tk, _ := tokenmap.Load(token)
+	var err error
+	if tk == nil {
+		tk, err = alpacapi.ParseTokenString(token, teakey, sumtable)
+		if err != nil {
+			http.Error(w, "400 Bad Request: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		if !tk.IsValid() {
+			http.Error(w, "400 Bad Request: invalid token", http.StatusBadRequest)
+			return
+		}
+		tokenmap.Store(token, tk)
+	} else {
+		if !tk.IsValid() {
+			http.Error(w, "400 Bad Request: invalid token", http.StatusBadRequest)
+			return
+		}
+	}
+	idstr := r.URL.Query().Get("id")
+	if idstr == "" {
+		http.Error(w, "400 Bad Request: empty id", http.StatusBadRequest)
+		return
+	}
+	id, err := strconv.Atoi(idstr)
+	if idstr == "" {
+		http.Error(w, "400 Bad Request: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+	if rep, ok := replymap.Load(uint32(id)); ok {
+		if rep == nil {
+			http.Error(w, "403 Forbidden: worker busy", http.StatusForbidden)
+			return
+		}
+		_ = json.NewEncoder(w).Encode(rep)
+		replymap.Delete(uint32(id))
+		return
+	}
+	http.Error(w, "400 Bad Request: invalid id", http.StatusBadRequest)
 }

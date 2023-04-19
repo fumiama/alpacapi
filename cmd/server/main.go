@@ -55,6 +55,7 @@ func main() {
 		logrus.Infoln("add worker:", workers[i])
 	}
 	http.HandleFunc("/reply", reply)
+	http.HandleFunc("/get", get)
 	logrus.Infoln("listening on", *addr)
 	tok := alpacapi.NewToken(1, 0, "fumiam", time.Now().Add(time.Hour).Unix(), 0)
 	logrus.Infoln("test token:", tok.Hex(teakey, sumtable))
