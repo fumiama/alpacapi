@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"net/http"
 	"net/url"
+	"sync/atomic"
 
 	"github.com/RomiChan/syncx"
 	"github.com/sirupsen/logrus"
@@ -24,6 +25,8 @@ func isMethod(m string, w http.ResponseWriter, r *http.Request) bool {
 }
 
 var tokenmap syncx.Map[string, *alpacapi.Token]
+
+var globalid uint32
 
 func reply(w http.ResponseWriter, r *http.Request) {
 	if !isMethod("GET", w, r) {
@@ -84,6 +87,7 @@ func reply(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	req := alpacapi.WorkerRequest{
+		ID: atomic.AddUint32(&globalid, 1),
 		Config: alpacapi.Config{
 			Role:    role,
 			Default: defl,

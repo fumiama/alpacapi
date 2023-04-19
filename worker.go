@@ -14,6 +14,7 @@ var (
 
 // WorkerRequest ...
 type WorkerRequest struct {
+	ID      uint32
 	Config  Config
 	Message string
 }

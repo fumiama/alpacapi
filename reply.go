@@ -39,39 +39,24 @@ func (r *WorkerRequest) GetReply(worker *net.UDPAddr, buffersize int, timeout ti
 		defer conn.Close()
 		n := 0
 		buf := make([]byte, buffersize)
-		n, _, err = conn.ReadFromUDP(buf)
-		if err != nil {
-			ch <- struct{}{}
-			return
-		}
-		rep, err = ParseWorkerReply(teakey.DecryptLittleEndian(buf[:n], sumtable))
-		if err != nil {
-			ch <- struct{}{}
-			return
-		}
-		ch <- struct{}{}
-		if !rep.IsPending {
-			ch <- struct{}{}
-			return
-		}
-		n, _, err = conn.ReadFromUDP(buf)
-		if err != nil {
-			ch <- struct{}{}
-			return
-		}
-		rep, err = ParseWorkerReply(teakey.DecryptLittleEndian(buf[:n], sumtable))
-		ch <- struct{}{}
-	}()
-	for i := 0; i < 2; i++ {
-		select {
-		case <-time.After(timeout):
-			err = ErrWorkerTimeout
-			return
-		case <-ch:
+		for i := 0; i < 16; i++ {
+			n, _, err = conn.ReadFromUDP(buf)
 			if err != nil {
+				ch <- struct{}{}
+				return
+			}
+			rep, err = ParseWorkerReply(teakey.DecryptLittleEndian(buf[:n], sumtable))
+			if err != nil || (rep.ID == r.ID && !rep.IsPending) {
+				ch <- struct{}{}
 				return
 			}
 		}
+	}()
+	select {
+	case <-time.After(timeout):
+		err = ErrWorkerTimeout
+		return
+	case <-ch:
+		return
 	}
-	return
 }

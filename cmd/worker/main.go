@@ -12,7 +12,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
-	"sync/atomic"
+	"time"
 
 	"github.com/sirupsen/logrus"
 
@@ -26,8 +26,6 @@ import (
 const prompt = `Do following task in Chinese, no interaction, no conversation. Pretend to be a Chinese %s. You got a message. Reply with just one sentence. No imaging User's reply, no explain why. If you don't know how to reply, just say "%s".
 User: %s
 You(last line):`
-
-var globalid uint32
 
 func main() {
 	addr := flag.String("l", "0.0.0.0:31471", "listening endpoint")
@@ -84,14 +82,18 @@ func main() {
 		}
 		logrus.Infoln("get request:", &req)
 		repl := alpacapi.WorkerReply{
-			ID:        atomic.AddUint32(&globalid, 1),
+			ID:        uint32(req.ID),
 			IsPending: true,
 			Msg:       "pending...",
 		}
-		_, err = listener.WriteToUDP(tk.EncryptLittleEndian(repl.Pack(), sumtable), from)
-		if err != nil {
-			logrus.Infoln("send pending err:", err)
-			continue
+		data := tk.EncryptLittleEndian(repl.Pack(), sumtable)
+		for i := 0; i < 8; i++ {
+			_, err = listener.WriteToUDP(data, from)
+			if err != nil {
+				logrus.Infoln("send pending err:", err)
+				continue
+			}
+			time.Sleep(time.Millisecond * 10)
 		}
 		cmd := exec.Command(
 			*llamapath, "-m", *mpth, "-p",
@@ -124,10 +126,14 @@ func main() {
 		logrus.Infoln("get reply:", reply)
 		repl.IsPending = false
 		repl.Msg = reply
-		_, err = listener.WriteToUDP(tk.EncryptLittleEndian(repl.Pack(), sumtable), from)
-		if err != nil {
-			logrus.Infoln("send reply err:", err)
-			continue
+		for i := 0; i < 8; i++ {
+			data = tk.EncryptLittleEndian(repl.Pack(), sumtable)
+			_, err = listener.WriteToUDP(data, from)
+			if err != nil {
+				logrus.Infoln("send reply err:", err)
+				continue
+			}
+			time.Sleep(time.Millisecond * 10)
 		}
 	}
 	logrus.Fatal(err)
