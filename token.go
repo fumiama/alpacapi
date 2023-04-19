@@ -6,11 +6,15 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
-	"strconv"
 	"time"
 	"unsafe"
 
+	tea "github.com/fumiama/gofastTEA"
 	"github.com/wdvxdr1123/ZeroBot/extension/rate"
+)
+
+var (
+	ErrInvalidTokenLength = errors.New("invalid token length")
 )
 
 // Token 请求口令
@@ -45,13 +49,14 @@ func ParseToken(b *[unsafe.Sizeof(Token{})]byte) *Token {
 }
 
 // ParseToken parse from hex string
-func ParseTokenString(s string) (*Token, error) {
-	if len(s) != int(unsafe.Sizeof(Token{})*2) {
-		return nil, errors.New("len(s) must be " + strconv.Itoa(int(unsafe.Sizeof(Token{})*2)))
-	}
+func ParseTokenString(s string, teakey tea.TEA, sumtable [16]uint32) (*Token, error) {
 	data, err := hex.DecodeString(s)
 	if err != nil {
 		return nil, err
+	}
+	data = teakey.DecryptLittleEndian(data, sumtable)
+	if len(data) != int(unsafe.Sizeof(Token{})) {
+		return nil, ErrInvalidTokenLength
 	}
 	return (*Token)(*(*unsafe.Pointer)(unsafe.Pointer(&data))), nil
 }
@@ -77,7 +82,7 @@ func (t *Token) String() string {
 }
 
 // Hex of token
-func (t *Token) Hex() string {
+func (t *Token) Hex(teakey tea.TEA, sumtable [16]uint32) string {
 	raw := (*[unsafe.Sizeof(Token{})]byte)(unsafe.Pointer(t))
-	return hex.EncodeToString(raw[:])
+	return hex.EncodeToString(teakey.EncryptLittleEndian(raw[:], sumtable))
 }

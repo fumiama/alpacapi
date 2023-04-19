@@ -31,12 +31,12 @@ func main() {
 	sumtablepath := flag.String("s", "sumtable.bin", "tea sumtable file")
 	to := flag.Uint("t", 5, "timeout (mins)")
 	flag.Parse()
-	if len(os.Args) < 3 {
+	if len(flag.Args()) < 2 {
 		panic("must give tea key (16 bytes hex string) and worker endpoints")
 	}
 	buffersize = *bufsz
 	timeout = time.Minute * time.Duration(*to)
-	k, err := hex.DecodeString(os.Args[1])
+	k, err := hex.DecodeString(flag.Args()[0])
 	if err != nil {
 		panic(err)
 	}
@@ -49,14 +49,14 @@ func main() {
 	for i := range sumtable {
 		sumtable[i] = binary.LittleEndian.Uint32(data[i*4 : (i+1)*4])
 	}
-	workers = make([]*net.UDPAddr, len(os.Args[2:]))
-	for i, ep := range os.Args[2:] {
+	workers = make([]*net.UDPAddr, len(flag.Args()[1:]))
+	for i, ep := range flag.Args()[1:] {
 		workers[i] = net.UDPAddrFromAddrPort(netip.MustParseAddrPort(ep))
 		logrus.Infoln("add worker:", workers[i])
 	}
 	http.HandleFunc("/reply", reply)
 	logrus.Infoln("listening on", *addr)
 	tok := alpacapi.NewToken(1, 0, "fumiam", time.Now().Add(time.Hour).Unix(), 0)
-	logrus.Infoln("test token:", tok.Hex())
+	logrus.Infoln("test token:", tok.Hex(teakey, sumtable))
 	logrus.Fatal(http.ListenAndServe(*addr, nil))
 }

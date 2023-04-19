@@ -37,7 +37,7 @@ func reply(w http.ResponseWriter, r *http.Request) {
 	tk, _ := tokenmap.Load(token)
 	var err error
 	if tk == nil {
-		tk, err = alpacapi.ParseTokenString(token)
+		tk, err = alpacapi.ParseTokenString(token, teakey, sumtable)
 		if err != nil {
 			http.Error(w, "400 Bad Request: "+err.Error(), http.StatusBadRequest)
 			return

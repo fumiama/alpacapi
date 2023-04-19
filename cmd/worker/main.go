@@ -37,10 +37,10 @@ func main() {
 	bufsz := flag.Uint("b", 4096, "udp buffer size")
 	sumtablepath := flag.String("s", "sumtable.bin", "tea sumtable file")
 	flag.Parse()
-	if len(os.Args) <= 1 {
+	if len(flag.Args()) < 1 {
 		panic("must give tea key (16 bytes hex string)")
 	}
-	k, err := hex.DecodeString(os.Args[1])
+	k, err := hex.DecodeString(flag.Args()[0])
 	if err != nil {
 		panic(err)
 	}
