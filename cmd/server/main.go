@@ -29,7 +29,7 @@ func main() {
 	addr := flag.String("l", "0.0.0.0:31471", "listening endpoint")
 	bufsz := flag.Uint("b", 4096, "udp buffer size")
 	sumtablepath := flag.String("s", "sumtable.bin", "tea sumtable file")
-	to := flag.Uint("t", 1, "timeout (mins)")
+	to := flag.Uint("t", 2, "timeout (mins)")
 	flag.Parse()
 	if len(flag.Args()) < 2 {
 		panic("must give tea key (16 bytes hex string) and worker endpoints")

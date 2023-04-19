@@ -86,15 +86,13 @@ func main() {
 			IsPending: true,
 			Msg:       "pending...",
 		}
-		data := tk.EncryptLittleEndian(repl.Pack(), sumtable)
-		for i := 0; i < 8; i++ {
-			_, err = listener.WriteToUDP(data, from)
-			if err != nil {
-				logrus.Infoln("send pending err:", err)
-				continue
+		go func() {
+			data := tk.EncryptLittleEndian(repl.Pack(), sumtable)
+			for i := 0; i < 8; i++ {
+				_, _ = listener.WriteToUDP(data, from)
+				time.Sleep(time.Second * 4)
 			}
-			time.Sleep(time.Millisecond * 10)
-		}
+		}()
 		cmd := exec.Command(
 			*llamapath, "-m", *mpth, "-p",
 			fmt.Sprintf(prompt, req.Config.Role, req.Config.Default, req.Message),
@@ -126,15 +124,13 @@ func main() {
 		logrus.Infoln("get reply:", reply)
 		repl.IsPending = false
 		repl.Msg = reply
-		for i := 0; i < 8; i++ {
-			data = tk.EncryptLittleEndian(repl.Pack(), sumtable)
-			_, err = listener.WriteToUDP(data, from)
-			if err != nil {
-				logrus.Infoln("send reply err:", err)
-				continue
+		data = tk.EncryptLittleEndian(repl.Pack(), sumtable)
+		go func() {
+			for i := 0; i < 8; i++ {
+				_, _ = listener.WriteToUDP(data, from)
+				time.Sleep(time.Second)
 			}
-			time.Sleep(time.Millisecond * 10)
-		}
+		}()
 	}
 	logrus.Fatal(err)
 }
