@@ -36,11 +36,16 @@ func main() {
 	}
 	buffersize = *bufsz
 	timeout = time.Minute * time.Duration(*to)
-	k, err := hex.DecodeString(flag.Args()[0])
+	kstr := flag.Args()[0]
+	k, err := hex.DecodeString(kstr)
 	if err != nil {
 		panic(err)
 	}
-	para.Hide(1)
+	for i, a := range os.Args {
+		if a == kstr {
+			para.Hide(i)
+		}
+	}
 	teakey = tea.NewTeaCipherLittleEndian(k)
 	data, err := os.ReadFile(*sumtablepath)
 	if err != nil {

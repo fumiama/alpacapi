@@ -29,7 +29,7 @@ You(last line):`
 
 func main() {
 	addr := flag.String("l", "0.0.0.0:31471", "listening endpoint")
-	mpth := flag.String("m", "/dataset/Alpaca-ggml/13B-ggml-model-q4_1.bin", "alpaca ggml model path")
+	mpth := flag.String("m", "/dataset/Alpaca/ggml/13B-ggml-model-q4_1.bin", "alpaca ggml model path")
 	threadcnt := flag.Uint("t", 24, "use threads count")
 	llamapath := flag.String("p", "./src/llama.cpp/build/bin/main", "llama.cpp main path")
 	bufsz := flag.Uint("b", 4096, "udp buffer size")
@@ -38,11 +38,16 @@ func main() {
 	if len(flag.Args()) < 1 {
 		panic("must give tea key (16 bytes hex string)")
 	}
-	k, err := hex.DecodeString(flag.Args()[0])
+	kstr := flag.Args()[0]
+	k, err := hex.DecodeString(kstr)
 	if err != nil {
 		panic(err)
 	}
-	para.Hide(1)
+	for i, a := range os.Args {
+		if a == kstr {
+			para.Hide(i)
+		}
+	}
 	tk := tea.NewTeaCipherLittleEndian(k)
 	data, err := os.ReadFile(*sumtablepath)
 	if err != nil {
