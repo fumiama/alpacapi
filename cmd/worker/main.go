@@ -31,7 +31,7 @@ func main() {
 	addr := flag.String("l", "0.0.0.0:31471", "listening endpoint")
 	mpth := flag.String("m", "/dataset/Alpaca/ggml/13B-ggml-model-q4_1.bin", "alpaca ggml model path")
 	threadcnt := flag.Uint("t", 24, "use threads count")
-	llamapath := flag.String("p", "./src/llama.cpp/build/bin/main", "llama.cpp main path")
+	llamapath := flag.String("p", "./src/llama.cpp/main", "llama.cpp main path")
 	bufsz := flag.Uint("b", 4096, "udp buffer size")
 	sumtablepath := flag.String("s", "sumtable.bin", "tea sumtable file")
 	flag.Parse()
