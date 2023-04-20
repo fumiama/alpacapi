@@ -106,6 +106,7 @@ func main() {
 		)
 		buffer := bytes.NewBuffer(bufd[:0])
 		cmd.Stdout = buffer
+		cmd.Stderr = os.Stderr
 		err = cmd.Run()
 		if err != nil {
 			logrus.Infoln("get reply err:", err)
