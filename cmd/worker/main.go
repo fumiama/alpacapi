@@ -23,8 +23,8 @@ import (
 )
 
 // prompt: role, default, message
-const prompt = `Do following task in Chinese, no interaction, no conversation. Pretend to be a Chinese %s. You got a message. Reply with just one sentence. No imaging User's reply, no explain why. If you don't know how to reply, just say "%s".
-User: %s
+const prompt = `Now pretend to be a Chinese %s and reply with only one sentence in Chinese, no interaction, no conversation, no imaging others' reply, no explaining why. If you don't know how to reply, just say "%s".
+%s
 You(last line):`
 
 func main() {

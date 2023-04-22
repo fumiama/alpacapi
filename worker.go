@@ -5,18 +5,41 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strconv"
+	"strings"
 )
 
 var (
 	ErrInvalidMd5 = errors.New("invalid md5 chksum")
 )
 
+// UserMessage Name: Message
+type UserMessage struct {
+	Name    string
+	Message string
+}
+
+func (um *UserMessage) String() string {
+	return um.Name + ": " + um.Message
+}
+
+type UserMessageSequence []UserMessage
+
+func (ums UserMessageSequence) String() string {
+	sb := strings.Builder{}
+	for _, um := range ums {
+		sb.WriteString(um.String())
+		sb.WriteByte('\n')
+	}
+	return sb.String()
+}
+
 // WorkerRequest ...
 type WorkerRequest struct {
 	ID      uint32
 	Config  Config
-	Message string
+	Message UserMessageSequence
 }
 
 // ParseWorkerRequest ...
@@ -31,7 +54,7 @@ func ParseWorkerRequest(body []byte) (req WorkerRequest, err error) {
 }
 
 func (r *WorkerRequest) String() string {
-	return "假装 " + r.Config.Role + " 回答 " + r.Message + ", 默认: " + r.Config.Default
+	return "假装 " + r.Config.Role + " 回答 " + fmt.Sprint(r.Message) + ", 默认: " + r.Config.Default
 }
 
 func (r *WorkerRequest) Pack() []byte {

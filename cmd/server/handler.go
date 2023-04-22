@@ -32,7 +32,7 @@ var replymap syncx.Map[uint32, *alpacapi.WorkerReply]
 var globalid uint32
 
 func reply(w http.ResponseWriter, r *http.Request) {
-	if !isMethod("GET", w, r) {
+	if !isMethod("POST", w, r) {
 		return
 	}
 	token := r.Header.Get("Authorization")
@@ -59,9 +59,11 @@ func reply(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	msg := r.URL.Query().Get("msg")
-	if msg == "" {
-		http.Error(w, "400 Bad Request: empty msg", http.StatusBadRequest)
+	defer r.Body.Close()
+	msg := alpacapi.UserMessageSequence{}
+	err = json.NewDecoder(r.Body).Decode(&msg)
+	if err != nil {
+		http.Error(w, "400 Bad Request: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 	role := r.URL.Query().Get("role")
@@ -83,11 +85,6 @@ func reply(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "400 Bad Request: invalid default: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-	}
-	msg, err = url.QueryUnescape(msg)
-	if err != nil {
-		http.Error(w, "400 Bad Request: invalid msg: "+err.Error(), http.StatusBadRequest)
-		return
 	}
 	req := alpacapi.WorkerRequest{
 		ID: atomic.AddUint32(&globalid, 1),

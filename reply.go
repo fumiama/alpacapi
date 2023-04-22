@@ -34,9 +34,8 @@ func (r *WorkerRequest) GetReply(worker *net.UDPAddr, buffersize int, timeout ti
 		return
 	}
 	ch := make(chan struct{}, 1)
-	defer close(ch)
 	go func() {
-		defer conn.Close()
+		defer close(ch)
 		n := 0
 		buf := make([]byte, buffersize)
 		for i := 0; i < 16; i++ {
@@ -55,8 +54,8 @@ func (r *WorkerRequest) GetReply(worker *net.UDPAddr, buffersize int, timeout ti
 	select {
 	case <-time.After(timeout):
 		err = ErrWorkerTimeout
-		return
 	case <-ch:
-		return
 	}
+	_ = conn.Close()
+	return
 }
