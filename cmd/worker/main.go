@@ -29,7 +29,7 @@ const endmark = `
 `
 
 // prompt: role, default, message
-const prompt = `You are a Chinese %s and got QQ messages. Reply with only one sentence in Chinese, no interaction, no conversation, no imaging others' reply, no explaining why. If you don't know how to reply, just say "%s".
+const prompt = `You are a Chinese %s and got messages with foramt "User(Name): Content". Reply with one sentence in Chinese. If you don't know how to reply, just say "%s".
 
 ### Instruction:
 
@@ -110,7 +110,7 @@ func main() {
 			*llamapath, "-m", *mpth, "-p",
 			fmt.Sprintf(prompt, req.Config.Role, req.Config.Default, req.Message),
 			"--ctx_size", "2048", "-b", "512", "--top_k", "10000",
-			"--repeat_penalty", "1", "-t", strconv.Itoa(int(*threadcnt)),
+			"-t", strconv.Itoa(int(*threadcnt)),
 		)
 		buffer := bytes.NewBuffer(bufd[:0])
 		cmd.Stdout = buffer
