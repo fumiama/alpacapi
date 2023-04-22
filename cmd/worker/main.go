@@ -106,19 +106,19 @@ func main() {
 		)
 		buffer := bytes.NewBuffer(bufd[:0])
 		cmd.Stdout = buffer
-		cmd.Stderr = os.Stderr
+		// cmd.Stderr = os.Stderr
 		err = cmd.Run()
 		if err != nil {
 			logrus.Infoln("get reply err:", err)
 			continue
 		}
 		reply := buffer.String()
-		i := strings.LastIndex(reply, "You(last line):")
+		i := strings.LastIndex(reply, "你(结束对话): ")
 		if i <= 0 {
 			logrus.Infoln("get reply err: invalid prompt")
 			continue
 		}
-		reply = strings.TrimSpace(reply[i+len("You(last line):"):])
+		reply = strings.TrimSpace(reply[i+len("你(结束对话): "):])
 		b = strings.Index(reply, "\n")
 		if b > 0 {
 			reply = strings.TrimSpace(reply[:b])
