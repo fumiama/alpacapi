@@ -22,10 +22,17 @@ import (
 	"github.com/fumiama/alpacapi"
 )
 
-const endmark = `You (final line): `
+const endmark = `
+
+### Response:
+
+`
 
 // prompt: role, default, message
 const prompt = `You are a Chinese %s and got QQ messages. Reply with only one sentence in Chinese, no interaction, no conversation, no imaging others' reply, no explaining why. If you don't know how to reply, just say "%s".
+
+### Instruction:
+
 %s` + endmark
 
 func main() {
