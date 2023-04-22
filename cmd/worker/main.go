@@ -22,10 +22,11 @@ import (
 	"github.com/fumiama/alpacapi"
 )
 
+const endmark = `You (final line): `
+
 // prompt: role, default, message
 const prompt = `You are a Chinese %s and got QQ messages. Reply with only one sentence in Chinese, no interaction, no conversation, no imaging others' reply, no explaining why. If you don't know how to reply, just say "%s".
-%s
-你(结束对话): `
+%s` + endmark
 
 func main() {
 	addr := flag.String("l", "0.0.0.0:31471", "listening endpoint")
@@ -113,12 +114,12 @@ func main() {
 			continue
 		}
 		reply := buffer.String()
-		i := strings.LastIndex(reply, "你(结束对话): ")
+		i := strings.LastIndex(reply, endmark)
 		if i <= 0 {
 			logrus.Infoln("get reply err: invalid prompt")
 			continue
 		}
-		reply = strings.TrimSpace(reply[i+len("你(结束对话): "):])
+		reply = strings.TrimSpace(reply[i+len(endmark):])
 		b = strings.Index(reply, "\n")
 		if b > 0 {
 			reply = strings.TrimSpace(reply[:b])

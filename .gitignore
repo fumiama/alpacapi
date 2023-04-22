@@ -17,3 +17,4 @@
 main
 *.bin
 alpacasrv
+.DS_Store
