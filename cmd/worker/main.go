@@ -23,9 +23,9 @@ import (
 )
 
 // prompt: role, default, message
-const prompt = `Now pretend to be a Chinese %s and reply with only one sentence in Chinese, no interaction, no conversation, no imaging others' reply, no explaining why. If you don't know how to reply, just say "%s".
+const prompt = `You are a Chinese %s and got QQ messages. Reply with only one sentence in Chinese, no interaction, no conversation, no imaging others' reply, no explaining why. If you don't know how to reply, just say "%s".
 %s
-You(last line):`
+你(结束对话): `
 
 func main() {
 	addr := flag.String("l", "0.0.0.0:31471", "listening endpoint")
@@ -101,7 +101,7 @@ func main() {
 		cmd := exec.Command(
 			*llamapath, "-m", *mpth, "-p",
 			fmt.Sprintf(prompt, req.Config.Role, req.Config.Default, req.Message),
-			"--ctx_size", "2048", "-b", "256", "--top_k", "10000",
+			"--ctx_size", "2048", "-b", "1024", "--top_k", "10000",
 			"--repeat_penalty", "1", "-t", strconv.Itoa(int(*threadcnt)),
 		)
 		buffer := bytes.NewBuffer(bufd[:0])
