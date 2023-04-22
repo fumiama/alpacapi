@@ -21,7 +21,7 @@ type UserMessage struct {
 }
 
 func (um *UserMessage) String() string {
-	return um.Name + ": " + um.Message
+	return "User(" + um.Name + "): " + um.Message
 }
 
 type UserMessageSequence []UserMessage
