@@ -102,7 +102,7 @@ func main() {
 		cmd := exec.Command(
 			*llamapath, "-m", *mpth, "-p",
 			fmt.Sprintf(prompt, req.Config.Role, req.Config.Default, req.Message),
-			"--ctx_size", "2048", "-b", "1024", "--top_k", "10000",
+			"--ctx_size", "2048", "-b", "512", "--top_k", "10000",
 			"--repeat_penalty", "1", "-t", strconv.Itoa(int(*threadcnt)),
 		)
 		buffer := bytes.NewBuffer(bufd[:0])
