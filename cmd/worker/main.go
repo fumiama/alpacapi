@@ -26,10 +26,10 @@ const endmark = `
 
 ### Response:
 
-`
+You: `
 
 // prompt: role, default, message
-const prompt = `You are a Chinese %s and got messages with foramt "User(Name): Content". Reply with one sentence in Chinese. If you don't know how to reply, just say "%s".
+const prompt = `You are a Chinese %s and got messages with foramt "User(Name): Content". Reply with one sentence in Chinese. Don't repeat given information. If you don't know how to reply, just say "%s".
 
 ### Instruction:
 
